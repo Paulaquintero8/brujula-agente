@@ -20,19 +20,24 @@
 
   <section id="config" class="card hidden">
     <h2>Configuración</h2>
-    <label>API key de Gemini
-      <input id="apiKey" type="password" placeholder="Pega tu API key (se guarda solo en este navegador)">
+    <label>Proveedor de IA
+      <select id="proveedor">
+        <option value="gemini">Google Gemini</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
     </label>
-    <small>Sácala gratis en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Nunca la subas a GitHub.</small>
+    <label>API key
+      <input id="apiKey" type="password" autocomplete="off" placeholder="Pega tu API key (se guarda solo en este navegador)">
+    </label>
+    <small id="ayudaKey"></small>
     <label>Modelo
-      <input id="modelo" list="modelos" value="gemini-2.5-flash">
-      <datalist id="modelos">
-        <option value="gemini-2.5-flash"></option>
-        <option value="gemini-2.5-flash-lite"></option>
-        <option value="gemini-2.5-pro"></option>
-      </datalist>
+      <input id="modelo" list="modelos">
+      <datalist id="modelos"></datalist>
     </label>
-    <label class="check"><input id="busqueda" type="checkbox" checked> Buscar en Google para citar fuentes reales</label>
+    <label class="check"><input id="busqueda" type="checkbox"> <span id="textoBusqueda">Buscar en la web para citar fuentes reales</span></label>
+    <small id="ayudaBusqueda" class="muted"></small>
+    <button id="btnProbar" class="ghost" type="button">Probar conexión</button>
+    <small id="estadoConexion"></small>
     <button id="btnGuardar" class="primary">Guardar</button>
   </section>
 
@@ -83,6 +88,8 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <script src="js/contexto.js"></script>
   <script src="js/gemini.js"></script>
+  <script src="js/openrouter.js"></script>
+  <script src="js/proveedores.js"></script>
   <script src="js/exportar-ppt.js"></script>
   <script src="js/app.js"></script>
 </body>
