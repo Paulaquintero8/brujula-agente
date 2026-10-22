@@ -19,7 +19,7 @@ async function llamarGemini({ apiKey, modelo, systemPrompt, historial, usarBusqu
   if (!r.ok) {
     const msg = data?.error?.message || `Error ${r.status}`;
     if (r.status === 429) throw new Error(`Llegaste al límite del plan gratuito (429). Espera un minuto o desactiva la búsqueda en Google en Configuración.\n\n${msg}`);
-    if (r.status === 400 || r.status === 403) throw new Error(`Revisa tu API key o el nombre del modelo.\n\n${msg}`);
+    if (r.status === 400 || r.status === 401 || r.status === 403) throw new Error(`Revisa tu API key o el nombre del modelo.\n\n${msg}`);
     throw new Error(msg);
   }
 
@@ -32,4 +32,11 @@ async function llamarGemini({ apiKey, modelo, systemPrompt, historial, usarBusqu
 
   if (!texto) throw new Error("Gemini no devolvió texto. Intenta de nuevo o acorta el mensaje.");
   return { texto, fuentes };
+}
+
+async function probarGemini(apiKey) {
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1", { headers: { "x-goog-api-key": apiKey } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d?.error?.message || `Error ${r.status}`);
+  return "Conectado a Gemini ✓";
 }

@@ -18,11 +18,36 @@ const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
 const leer = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
 
 function config() {
+  const proveedor = $("proveedor").value;
   return {
+    proveedor,
     apiKey: $("apiKey").value.trim(),
-    modelo: $("modelo").value.trim() || "gemini-2.5-flash",
+    modelo: $("modelo").value.trim() || PROVEEDORES[proveedor].modeloPorDefecto,
     usarBusqueda: $("busqueda").checked,
   };
+}
+
+// Cada proveedor guarda su propia key, modelo y preferencia de búsqueda.
+function cargarConfigProveedor(proveedor) {
+  const p = PROVEEDORES[proveedor];
+  const keyVieja = proveedor === "gemini" ? leer("brujula_api_key") : null; // compatibilidad con la versión anterior
+  $("apiKey").value = leer(`brujula_key_${proveedor}`) || keyVieja || "";
+  $("modelo").value = leer(`brujula_modelo_${proveedor}`) || p.modeloPorDefecto;
+  const b = leer(`brujula_busqueda_${proveedor}`);
+  $("busqueda").checked = b === null ? p.busquedaPorDefecto : b === "1";
+  $("modelos").innerHTML = p.modelos.map((m) => `<option value="${m}"></option>`).join("");
+  $("ayudaKey").innerHTML = p.ayudaKey;
+  $("textoBusqueda").textContent = p.textoBusqueda;
+  $("ayudaBusqueda").innerHTML = p.ayudaBusqueda;
+  $("estadoConexion").textContent = "";
+}
+
+function guardarConfig() {
+  const c = config();
+  guardar("brujula_proveedor", c.proveedor);
+  guardar(`brujula_key_${c.proveedor}`, c.apiKey);
+  guardar(`brujula_modelo_${c.proveedor}`, c.modelo);
+  guardar(`brujula_busqueda_${c.proveedor}`, c.usarBusqueda ? "1" : "0");
 }
 
 // ---------- UI ----------
@@ -67,7 +92,7 @@ async function enviar(textoUsuario, { mostrar = textoUsuario } = {}) {
   const cfg = config();
   if (!cfg.apiKey) {
     $("config").classList.remove("hidden");
-    agregarMensaje("error", "Primero pega tu API key de Gemini en Configuración.");
+    agregarMensaje("error", `Primero pega tu API key de ${PROVEEDORES[cfg.proveedor].nombre} en Configuración.`);
     return false;
   }
   if (!estado.systemPrompt) {
@@ -84,7 +109,7 @@ async function enviar(textoUsuario, { mostrar = textoUsuario } = {}) {
   const cargando = agregarMensaje("bot cargando", "Investigando y pensando…");
 
   try {
-    const { texto, fuentes } = await llamarGemini({ ...cfg, systemPrompt: estado.systemPrompt, historial: estado.historial });
+    const { texto, fuentes } = await llamarIA(cfg.proveedor, { ...cfg, systemPrompt: estado.systemPrompt, historial: estado.historial });
     cargando.remove();
     estado.historial.push({ role: "model", parts: [{ text: texto }] });
     estado.respuestas.push(texto);
@@ -133,10 +158,11 @@ function descargar(nombre, contenido, tipo) {
 
 // ---------- Eventos ----------
 document.addEventListener("DOMContentLoaded", () => {
-  $("apiKey").value = leer("brujula_api_key") || "";
-  $("modelo").value = leer("brujula_modelo") || "gemini-2.5-flash";
-  const b = leer("brujula_busqueda"); if (b !== null) $("busqueda").checked = b === "1";
+  const proveedorGuardado = leer("brujula_proveedor");
+  $("proveedor").value = PROVEEDORES[proveedorGuardado] ? proveedorGuardado : "gemini";
+  cargarConfigProveedor($("proveedor").value);
   if (!$("apiKey").value) $("config").classList.remove("hidden");
+  $("proveedor").onchange = () => cargarConfigProveedor($("proveedor").value);
   pintarFases();
 
   cargarContexto()
@@ -145,10 +171,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("btnConfig").onclick = () => $("config").classList.toggle("hidden");
   $("btnGuardar").onclick = () => {
-    guardar("brujula_api_key", $("apiKey").value.trim());
-    guardar("brujula_modelo", $("modelo").value.trim());
-    guardar("brujula_busqueda", $("busqueda").checked ? "1" : "0");
+    guardarConfig();
     $("config").classList.add("hidden");
+  };
+  $("btnProbar").onclick = async () => {
+    const c = config();
+    if (!c.apiKey) { $("estadoConexion").textContent = "Pega primero la API key."; return; }
+    $("estadoConexion").textContent = "Probando…";
+    try { $("estadoConexion").textContent = await PROVEEDORES[c.proveedor].probar(c.apiKey); guardarConfig(); }
+    catch (e) { $("estadoConexion").textContent = `❌ ${e.message}`; }
   };
 
   $("archivoBrief").onchange = async (e) => {
