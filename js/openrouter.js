@@ -12,7 +12,29 @@ function historialAMensajes(systemPrompt, historial) {
   ];
 }
 
-async function llamarOpenRouter({ apiKey, modelo, systemPrompt, historial, usarBusqueda }) {
+// Los modelos gratis a veces fallan o responden vacío. Reintenta hasta 3 veces
+// (con openrouter/free cada intento puede caer en un modelo distinto).
+async function llamarOpenRouter(opts) {
+  let ultimoError;
+  for (let intento = 1; intento <= 3; intento++) {
+    try {
+      return await llamarOpenRouterUnaVez(opts);
+    } catch (e) {
+      ultimoError = e;
+      if (!e.reintentable) throw e;
+      await new Promise((r) => setTimeout(r, 1500 * intento));
+    }
+  }
+  throw ultimoError;
+}
+
+function errorOR(mensaje, reintentable = false) {
+  const e = new Error(mensaje);
+  e.reintentable = reintentable;
+  return e;
+}
+
+async function llamarOpenRouterUnaVez({ apiKey, modelo, systemPrompt, historial, usarBusqueda }) {
   const body = {
     model: modelo,
     messages: historialAMensajes(systemPrompt, historial),
@@ -39,9 +61,9 @@ async function llamarOpenRouter({ apiKey, modelo, systemPrompt, historial, usarB
     const code = data?.error?.code || r.status;
     if (code === 401) throw new Error(`OpenRouter no reconoce la API key (401). Cópiala de nuevo desde openrouter.ai/keys.\n\n${msg}`);
     if (code === 402) throw new Error(`Tu cuenta de OpenRouter no tiene créditos para esta solicitud (402). Usa un modelo gratis (termina en :free u openrouter/free) y desactiva la búsqueda web.\n\n${msg}`);
-    if (code === 429) throw new Error(`Llegaste al límite de solicitudes (429). Los modelos gratis tienen límites bajos: espera un minuto o prueba otro modelo.\n\n${msg}`);
+    if (code === 429) throw errorOR(`Llegaste al límite de solicitudes (429). Los modelos gratis tienen límites diarios bajos: espera un minuto o prueba otro modelo.\n\n${msg}`, true);
     if (code === 404) throw new Error(`OpenRouter no encontró ese modelo o no está disponible ahora (404). Revisa el nombre en openrouter.ai/models.\n\n${msg}`);
-    throw new Error(msg);
+    throw errorOR(`El modelo falló (${code}). ${msg}`, code >= 500 || code === 408);
   }
 
   const msgIA = data.choices?.[0]?.message || {};
@@ -52,7 +74,7 @@ async function llamarOpenRouter({ apiKey, modelo, systemPrompt, historial, usarB
     .filter((a) => a.type === "url_citation" && a.url_citation)
     .map((a) => ({ titulo: a.url_citation.title, url: a.url_citation.url }));
 
-  if (!texto) throw new Error("El modelo no devolvió texto. Intenta de nuevo o prueba otro modelo.");
+  if (!texto) throw errorOR(`El modelo ${data.model || ""} no devolvió texto (se quedó sin espacio o falló). Intenta de nuevo o prueba otro modelo.`, true);
   return { texto, fuentes, modeloUsado: data.model };
 }
 

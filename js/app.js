@@ -106,14 +106,15 @@ async function enviar(textoUsuario, { mostrar = textoUsuario } = {}) {
   agregarMensaje("user", mostrar);
   estado.historial.push({ role: "user", parts: [{ text: textoUsuario }] });
   estado.ocupado = true; pintarFases();
-  const cargando = agregarMensaje("bot cargando", "Investigando y pensando…");
+  const cargando = agregarMensaje("bot cargando", "Investigando y pensando… (con modelos gratis puede tardar hasta un minuto)");
 
   try {
-    const { texto, fuentes } = await llamarIA(cfg.proveedor, { ...cfg, systemPrompt: estado.systemPrompt, historial: estado.historial });
+    const { texto, fuentes, modeloUsado } = await llamarIA(cfg.proveedor, { ...cfg, systemPrompt: estado.systemPrompt, historial: estado.historial });
     cargando.remove();
     estado.historial.push({ role: "model", parts: [{ text: texto }] });
     estado.respuestas.push(texto);
-    agregarMensaje("bot", texto, fuentes);
+    const div = agregarMensaje("bot", texto, fuentes);
+    if (modeloUsado) div.insertAdjacentHTML("beforeend", `<div class="fuentes-web">Respondió: ${DOMPurify.sanitize(modeloUsado)}</div>`);
     return true;
   } catch (e) {
     cargando.remove();
