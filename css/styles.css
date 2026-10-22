@@ -1,0 +1,63 @@
+:root {
+  --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1f; --muted: #6b6b70;
+  --line: #e4e2dc; --accent: #c2410c; --accent-ink: #ffffff; --soft: #fff4ec;
+  --bot: #f3f1ec; --user: #1d1d1f; --user-ink: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414; --card: #1d1d1d; --ink: #f2f2f2; --muted: #a0a0a6;
+    --line: #2f2f2f; --accent: #f97316; --accent-ink: #141414; --soft: #2a1d14;
+    --bot: #252525; --user: #f2f2f2; --user-ink: #141414;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+a { color: var(--accent); }
+h1 { margin: 0; font-size: 1.3rem; }
+h2 { margin: 0 0 .6rem; font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--card); }
+.brand { display: flex; gap: 12px; align-items: center; }
+.brand p { margin: 0; color: var(--muted); font-size: .85rem; }
+.logo { font-size: 1.8rem; }
+.layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.side { display: flex; flex-direction: column; gap: 14px; }
+#config { max-width: 520px; margin: 16px auto 0; display: flex; flex-direction: column; gap: 10px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+label.check { flex-direction: row; align-items: center; gap: 8px; }
+input, textarea { font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); width: 100%; }
+#brief { min-height: 160px; resize: vertical; }
+button { font: inherit; cursor: pointer; border-radius: 8px; padding: 9px 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.ghost { background: transparent; }
+.danger { color: #b91c1c; }
+.small { padding: 6px 10px; font-size: .85rem; }
+.full { width: 100%; margin-top: 8px; }
+.row { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 8px; }
+.file { flex-direction: row; font-size: .85rem; cursor: pointer; color: var(--accent); }
+.file input { display: none; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); font-size: .8rem; }
+.fases { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.fases li { padding: 6px 8px; border-radius: 6px; font-size: .88rem; color: var(--muted); }
+.fases li.hecha { color: var(--ink); }
+.fases li.hecha::before { content: "✓ "; color: var(--accent); }
+.fases li.actual { background: var(--soft); color: var(--ink); font-weight: 600; }
+.chat { display: flex; flex-direction: column; height: calc(100vh - 110px); padding: 0; overflow: hidden; }
+.mensajes { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg { padding: 12px 14px; border-radius: 12px; max-width: 92%; line-height: 1.5; font-size: .95rem; overflow-x: auto; }
+.msg.bot { background: var(--bot); align-self: flex-start; }
+.msg.user { background: var(--user); color: var(--user-ink); align-self: flex-end; white-space: pre-wrap; }
+.msg table { border-collapse: collapse; margin: 8px 0; font-size: .85rem; }
+.msg th, .msg td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+.msg pre { background: var(--bg); padding: 8px; border-radius: 6px; overflow-x: auto; font-size: .8rem; }
+.msg .fuentes-web { margin-top: 10px; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.msg.cargando { color: var(--muted); font-style: italic; }
+.msg.error { background: #fde8e8; color: #7f1d1d; }
+.entrada { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+.entrada textarea { resize: none; }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; padding: 16px; }
+  .chat { height: 70vh; }
+}
