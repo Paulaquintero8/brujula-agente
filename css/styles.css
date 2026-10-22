@@ -25,7 +25,7 @@ h2 { margin: 0 0 .6rem; font-size: .95rem; text-transform: uppercase; letter-spa
 #config { max-width: 520px; margin: 16px auto 0; display: flex; flex-direction: column; gap: 10px; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
 label.check { flex-direction: row; align-items: center; gap: 8px; }
-input, textarea { font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); width: 100%; }
+input, textarea, select { font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); width: 100%; }
 #brief { min-height: 160px; resize: vertical; }
 button { font: inherit; cursor: pointer; border-radius: 8px; padding: 9px 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
 button:disabled { opacity: .45; cursor: not-allowed; }
