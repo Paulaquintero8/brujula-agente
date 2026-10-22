@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brújula · Agente de arranque estratégico</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">🧭</span>
+      <div>
+        <h1>Brújula</h1>
+        <p>Del brief en blanco al primer borrador estratégico</p>
+      </div>
+    </div>
+    <button id="btnConfig" class="ghost">⚙️ Configuración</button>
+  </header>
+
+  <section id="config" class="card hidden">
+    <h2>Configuración</h2>
+    <label>API key de Gemini
+      <input id="apiKey" type="password" placeholder="Pega tu API key (se guarda solo en este navegador)">
+    </label>
+    <small>Sácala gratis en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Nunca la subas a GitHub.</small>
+    <label>Modelo
+      <input id="modelo" list="modelos" value="gemini-2.5-flash">
+      <datalist id="modelos">
+        <option value="gemini-2.5-flash"></option>
+        <option value="gemini-2.5-flash-lite"></option>
+        <option value="gemini-2.5-pro"></option>
+      </datalist>
+    </label>
+    <label class="check"><input id="busqueda" type="checkbox" checked> Buscar en Google para citar fuentes reales</label>
+    <button id="btnGuardar" class="primary">Guardar</button>
+  </section>
+
+  <main class="layout">
+    <aside class="side">
+      <div class="card">
+        <h2>1 · Brief</h2>
+        <textarea id="brief" placeholder="Pega aquí el brief del cliente…"></textarea>
+        <div class="row">
+          <label class="file">📎 Cargar .txt / .md<input id="archivoBrief" type="file" accept=".txt,.md"></label>
+          <button id="btnEjemplo" class="ghost small">Usar ejemplo</button>
+        </div>
+        <button id="btnIniciar" class="primary full">Iniciar diagnóstico (F0)</button>
+      </div>
+
+      <div class="card">
+        <h2>2 · Fases</h2>
+        <ol id="fases" class="fases"></ol>
+        <button id="btnSiguiente" class="primary full" disabled>Validar y pasar a la siguiente fase →</button>
+      </div>
+
+      <div class="card">
+        <h2>3 · Exportar</h2>
+        <button id="btnPPT" class="ghost full" disabled>⬇️ Descargar PPT (tras F7)</button>
+        <button id="btnMD" class="ghost full" disabled>⬇️ Descargar todo en .md</button>
+        <button id="btnFuentes" class="ghost full" disabled>📚 Matriz de fuentes consolidada</button>
+        <button id="btnReiniciar" class="ghost full danger">↺ Nuevo proyecto</button>
+      </div>
+      <p id="estadoCtx" class="muted"></p>
+    </aside>
+
+    <section class="chat card">
+      <div id="mensajes" class="mensajes">
+        <div class="msg bot intro">
+          <p><strong>Hola, soy Brújula.</strong> Pega un brief y te ayudo a arrancar: diagnóstico, mercado, competencia, buyer personas, insight, territorios, funnel con proyección de leads y estructura del deck.</p>
+          <p>Trabajo una fase a la vez y marco todo como <code>[DATO]</code>, <code>[SUPUESTO]</code> o <code>[HIPÓTESIS]</code>. No invento cifras.</p>
+        </div>
+      </div>
+      <form id="formChat" class="entrada">
+        <textarea id="input" rows="2" placeholder="Ajusta, corrige o pregunta algo sobre la fase actual…"></textarea>
+        <button class="primary" type="submit">Enviar</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="js/contexto.js"></script>
+  <script src="js/gemini.js"></script>
+  <script src="js/exportar-ppt.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
