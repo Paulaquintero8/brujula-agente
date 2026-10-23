@@ -46,10 +46,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .fases li.actual { background: var(--soft); color: var(--ink); font-weight: 600; }
 .chat { display: flex; flex-direction: column; height: calc(100vh - 110px); padding: 0; overflow: hidden; }
 .mensajes { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.msg { padding: 12px 14px; border-radius: 12px; max-width: 92%; line-height: 1.5; font-size: .95rem; overflow-x: auto; }
+.msg { flex-shrink: 0; padding: 12px 14px; border-radius: 12px; max-width: 92%; line-height: 1.5; font-size: .95rem; overflow-wrap: anywhere; }
 .msg.bot { background: var(--bot); align-self: flex-start; }
 .msg.user { background: var(--user); color: var(--user-ink); align-self: flex-end; white-space: pre-wrap; }
-.msg table { border-collapse: collapse; margin: 8px 0; font-size: .85rem; }
+.msg table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 8px 0; font-size: .85rem; overflow-wrap: normal; }
 .msg th, .msg td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
 .msg pre { background: var(--bg); padding: 8px; border-radius: 6px; overflow-x: auto; font-size: .8rem; }
 .msg .fuentes-web { margin-top: 10px; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
