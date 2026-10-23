@@ -108,8 +108,22 @@ async function enviar(textoUsuario, { mostrar = textoUsuario } = {}) {
   estado.ocupado = true; pintarFases();
   const cargando = agregarMensaje("bot cargando", "Investigando y pensando… (con modelos gratis puede tardar hasta un minuto)");
 
+  // Con openrouter/free cada solicitud puede caer en un modelo distinto, y el cambio
+  // hace que el agente "olvide" el hilo. Por eso fijamos el primer modelo que respondió
+  // y lo usamos en todo el proyecto (si falla, volvemos a openrouter/free).
+  const usaRouterGratis = cfg.proveedor === "openrouter" && cfg.modelo === "openrouter/free";
+  const pedir = (modelo) => llamarIA(cfg.proveedor, { ...cfg, modelo, systemPrompt: estado.systemPrompt, historial: estado.historial });
+
   try {
-    const { texto, fuentes, modeloUsado } = await llamarIA(cfg.proveedor, { ...cfg, systemPrompt: estado.systemPrompt, historial: estado.historial });
+    let resp;
+    if (usaRouterGratis && estado.modeloFijado) {
+      try { resp = await pedir(estado.modeloFijado); }
+      catch (_) { estado.modeloFijado = null; resp = await pedir(cfg.modelo); }
+    } else {
+      resp = await pedir(cfg.modelo);
+    }
+    const { texto, fuentes, modeloUsado } = resp;
+    if (usaRouterGratis && modeloUsado) estado.modeloFijado = modeloUsado;
     cargando.remove();
     estado.historial.push({ role: "model", parts: [{ text: texto }] });
     estado.respuestas.push(texto);
@@ -129,7 +143,7 @@ async function enviar(textoUsuario, { mostrar = textoUsuario } = {}) {
 async function iniciar() {
   const brief = $("brief").value.trim();
   if (brief.length < 40) { agregarMensaje("error", "Pega un brief un poco más completo para arrancar."); return; }
-  estado.historial = []; estado.respuestas = []; estado.faseActual = 0; pintarFases();
+  estado.historial = []; estado.respuestas = []; estado.faseActual = 0; estado.modeloFijado = null; pintarFases();
   const ok = await enviar(
     `BRIEF DEL CLIENTE:\n"""\n${brief}\n"""\n\nEjecuta SOLO la fase F0 · ${FASES[0].nombre}, siguiendo 03-entregables.md. Termina pidiendo validación.`,
     { mostrar: "📄 Brief cargado. Arranca con F0 · Diagnóstico del brief." }
@@ -143,7 +157,7 @@ async function siguienteFase() {
   const f = FASES[sig];
   const extra = f.id === "F7" ? " Incluye el bloque ```json con la estructura exacta definida." : "";
   const ok = await enviar(
-    `Valido la fase anterior (con los ajustes que hayamos conversado). Ejecuta SOLO la fase ${f.id} · ${f.nombre}, siguiendo 03-entregables.md.${extra}`,
+    `Valido la fase anterior e incorpora todas las respuestas y ajustes que te di en esta conversación. Ejecuta SOLO la fase ${f.id} · ${f.nombre}, siguiendo 03-entregables.md.${extra}`,
     { mostrar: `✅ Validado. Pasemos a ${f.id} · ${f.nombre}.` }
   );
   if (ok) { estado.faseActual = sig; pintarFases(); }
@@ -200,7 +214,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!t || estado.ocupado) return;
     if (estado.faseActual < 0) { agregarMensaje("error", "Primero pega un brief e inicia el diagnóstico."); return; }
     $("input").value = "";
-    await enviar(t);
+    const fase = FASES[estado.faseActual];
+    await enviar(
+      `[Mensaje tipo 2 · respuesta del usuario sobre ${fase.id} · ${fase.nombre}]\n"""\n${t}\n"""\n\n` +
+      "Incorpora esta información. NO repitas la fase ni vuelvas a hacer las mismas preguntas. " +
+      "Responde con: Lo que entendí, Lo que cambia, Pendiente y si seguimos (ver 03-entregables.md, Tipo 2). " +
+      "Si el usuario hace una pregunta o pide algo puntual, respóndelo directamente.",
+      { mostrar: t }
+    );
   };
   $("input").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("formChat").requestSubmit(); }
@@ -221,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("btnReiniciar").onclick = () => {
     if (estado.ocupado) return;
-    estado.historial = []; estado.respuestas = []; estado.faseActual = -1;
+    estado.historial = []; estado.respuestas = []; estado.faseActual = -1; estado.modeloFijado = null;
     $("mensajes").querySelectorAll(".msg:not(.intro)").forEach((n) => n.remove());
     pintarFases();
   };
